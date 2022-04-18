@@ -25,9 +25,9 @@ export async function activateCard(req: Request, res: Response) {
   try {
     const cardId = parseInt(req.params.id);
     const cardData = {
-        securityCode: req.body.securityCode,
-        password: req.body.password
-    }
+      securityCode: req.body.securityCode,
+      password: req.body.password,
+    };
 
     await services.activateCard(cardId, cardData);
 
@@ -79,7 +79,7 @@ export async function getBalance(req: Request, res: Response) {
 
 export async function rechargeCard(req: Request, res: Response) {
   const cardId = req.params.id;
-  const amount = req.body;
+  const amount = req.body.amount;
 
   try {
     await services.rechargeCard(parseInt(cardId), amount);
@@ -95,17 +95,32 @@ export async function rechargeCard(req: Request, res: Response) {
     if (error.type === "unauthorized") {
       return res.status(401).send({ message: error.message });
     }
-
-    console.log(error);
     return res.sendStatus(500);
   }
 }
 
 export async function makePurchase(req: Request, res: Response) {
-    const purchaseData = {
-        cardId: parseInt(req.params.id),
-        businessId: req.body.businessId,
-        amount: req.body.amount}
+  const purchaseData = {
+    cardId: parseInt(req.params.id),
+    password: req.body.password,
+    businessId: req.body.businessId,
+    amount: req.body.amount,
+  };
 
-    await services.makePurchase(purchaseData)
+  try {
+    await services.makePurchase(purchaseData);
+
+    res.sendStatus(200);
+  } catch (error) {
+    if (error.type === "error_conflict") {
+      return res.status(409).send({ message: error.message });
+    }
+    if (error.type === "error_not_found") {
+      return res.status(404).send({ message: error.message });
+    }
+    if (error.type === "unauthorized") {
+      return res.status(401).send({ message: error.message });
+    }
+    return res.sendStatus(500);
+  }
 }
