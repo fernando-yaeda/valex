@@ -5,7 +5,7 @@ const securityCodeRegex = /^[0-9]{3}$/;
 
 const activateCardSchema = joi.object({
   secutiryCode: joi.string().pattern(securityCodeRegex).required(),
-  password: joi.string().pattern(passwordRegex).required(),
+  password: joi.string().pattern(passwordRegex).required()
 });
 
 export default activateCardSchema;

@@ -25,7 +25,7 @@ export async function activateCard(req: Request, res: Response) {
   try {
     const cardId = parseInt(req.params.id);
 
-    console.log(cardId);
+    console.log(req.body);
 
     await services.activateCard(cardId, req.body);
 
@@ -97,4 +97,13 @@ export async function rechargeCard(req: Request, res: Response) {
     console.log(error);
     return res.sendStatus(500);
   }
+}
+
+export async function makePurchase(req: Request, res: Response) {
+    const purchaseData = {
+        cardId: parseInt(req.params.id),
+        businessId: req.body.businessId,
+        amount: req.body.amount}
+
+    await services.makePurchase(purchaseData)
 }

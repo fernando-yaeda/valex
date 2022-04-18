@@ -5,10 +5,12 @@ export function validateSchemaMiddleware(schema: any) {
     
     const validation = schema.validate(req.body);
 
+    console.log(validation)
+    
     if (validation.error) {
       return res.sendStatus(422);
     }
-
+    
     next();
   };
 }

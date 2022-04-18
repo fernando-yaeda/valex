@@ -4,6 +4,7 @@ import validateApiKeyMiddleware from "../middlewares/validateApiKeyMiddleware.js
 import { validateSchemaMiddleware } from "../middlewares/validateSchemaMiddleware.js";
 import activateCardSchema from "../schemas/activateCardSchema.js";
 import cardSchema from "../schemas/cardSchema.js";
+import purchaseSchema from "../schemas/purchaseSchema.js";
 import rechargeSchema from "../schemas/rechargeSchema.js";
 
 const router = Router();
@@ -27,6 +28,12 @@ router.post(
   "/cards/:id/recharge",
   validateSchemaMiddleware(rechargeSchema),
   controller.rechargeCard
+);
+
+router.post(
+  "/purchases/cards/:id",
+  validateSchemaMiddleware(purchaseSchema),
+  controller.makePurchase
 );
 
 export default router;

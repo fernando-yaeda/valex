@@ -3,6 +3,7 @@ import * as companyRepository from "../repositories/companyRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
 import * as paymentRepository from "../repositories/paymentRepository.js";
 import * as rechargeRepository from "../repositories/rechargeRepository.js";
+import * as businessRepository from "../repositories/businessRepository.js";
 import { faker } from "@faker-js/faker";
 import bcrypt from "bcrypt";
 import dayjs from "dayjs";
@@ -110,6 +111,8 @@ export async function getBalance(id: number) {
   return { balance, payments, recharges };
 }
 
+// recharge services
+
 export async function rechargeCard(id: number, amount: number) {
   const cardData = await cardRepository.findById(id);
   if (!cardData) throw notFoundError("card id");
@@ -122,6 +125,37 @@ export async function rechargeCard(id: number, amount: number) {
   };
 
   await rechargeRepository.insert(rechargeData);
+}
+
+// payment services
+
+export async function makePurchase(purchaseData: any) {
+  const cardData = await cardRepository.findById(purchaseData.cardId);
+  if (!cardData) throw notFoundError("card id");
+  if (dayjs(cardData.expirationDate).isBefore(dayjs().format("DD/MM"))) throw conflictError("expired card"); 
+  if (!bcrypt.compareSync(cardData.password, purchaseData.password)) throw unauthorizedError("password");
+  
+  const validateBusiness = await businessRepository.findById(purchaseData.businessId)
+  if(!validateBusiness) throw unauthorizedError("business")
+  
+  if(validateBusiness.type !== cardData.type) throw unauthorizedError("card type")
+
+  const payments = await paymentRepository.findByCardId(purchaseData.cardId);
+  const recharges = await rechargeRepository.findByCardId(purchaseData.cardId);
+
+  let balance: number = 0;
+
+  for (let i = 0; i < payments.length; i++) {
+    balance = balance - payments[i].amount;
+  }
+
+  for (let i = 0; i < recharges.length; i++) {
+    balance = balance + recharges[i].amount;
+  }
+
+  if(balance < purchaseData.amount) throw unauthorizedError("insuficient balance")
+
+  await paymentRepository.insert(purchaseData)
 }
 
 //errors
