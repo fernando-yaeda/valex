@@ -133,7 +133,8 @@ export async function makePurchase(purchaseData: any) {
   const cardData = await cardRepository.findById(purchaseData.cardId);
   if (!cardData) throw notFoundError("card id");
   if (dayjs(cardData.expirationDate).isBefore(dayjs().format("DD/MM"))) throw conflictError("expired card"); 
-  if (!bcrypt.compareSync(cardData.password, purchaseData.password)) throw unauthorizedError("password");
+  console.log(purchaseData)
+  if (!bcrypt.compareSync(purchaseData.password, cardData.password)) throw unauthorizedError("password");
   
   const validateBusiness = await businessRepository.findById(purchaseData.businessId)
   if(!validateBusiness) throw unauthorizedError("business")
