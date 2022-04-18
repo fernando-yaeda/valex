@@ -51,9 +51,15 @@ export async function getBalance(req: Request, res: Response) {
 
   try {
 
-    const balance = await services.getBalance(cardId);
+    const { balance, payments, recharges} = await services.getBalance(cardId);
 
-    return res.status(200).send(balance.toString())
+    const balanceObject = {
+        balance,
+        transactions: payments,
+        recharges: recharges
+    }
+
+    return res.status(200).send(JSON.stringify(balanceObject))
   } catch (error) {
     if (error.type === "error_conflict") {
       return res.status(409).send({ message: error.message });

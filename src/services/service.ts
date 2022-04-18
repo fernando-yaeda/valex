@@ -100,8 +100,8 @@ export async function getBalance(id: number) {
   for (let i = 0; i < recharges.length; i++) {
     balance = balance + recharges[i].amount
   }
-
-  return balance
+  
+  return { balance, payments, recharges}
 }
 
 //errors
