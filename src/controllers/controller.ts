@@ -24,10 +24,12 @@ export async function createCard(req: Request, res: Response) {
 export async function activateCard(req: Request, res: Response) {
   try {
     const cardId = parseInt(req.params.id);
+    const cardData = {
+        securityCode: req.body.securityCode,
+        password: req.body.password
+    }
 
-    console.log(req.body);
-
-    await services.activateCard(cardId, req.body);
+    await services.activateCard(cardId, cardData);
 
     res.sendStatus(200);
   } catch (error) {
