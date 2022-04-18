@@ -1,6 +1,8 @@
 import * as cardRepository from "../repositories/cardRepository.js";
 import * as companyRepository from "../repositories/companyRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
+import * as paymentRepository from "../repositories/paymentRepository.js"
+import * as rechargeRepository from "../repositories/rechargeRepository.js"
 import { faker } from "@faker-js/faker";
 import bcrypt from "bcrypt";
 import dayjs from "dayjs";
@@ -40,6 +42,8 @@ function createCardData() {
   const hashedSecurityCode = bcrypt.hashSync(securityCode, 10);
   const expirationDate = dayjs().add(5, "year").format("MM/YY");
 
+  console.log(securityCode)
+
   return {
     number: cardNumber,
     securityCode: hashedSecurityCode,
@@ -63,6 +67,41 @@ async function findEmployee(id: number) {
   if (!employee) throw notFoundError("employee");
 
   return employee.fullName;
+}
+
+export async function activateCard(id: number, cardData: any) {
+  const card = await cardRepository.findById(id)
+  if(!card) throw notFoundError("card id")
+  if(card.password) throw conflictError('card already has password')
+  if(dayjs(card.expirationDate).isBefore(dayjs().format("DD/MM"))) throw conflictError("expired card")
+  if(!card.isBlocked) throw conflictError("card already active")
+  if(!bcrypt.compareSync(cardData.securityCode, card.securityCode)) throw conflictError("CVC is wrong")
+
+  delete cardData.securityCode
+
+  const hashedPassword = bcrypt.hashSync(cardData.password, 10)
+
+  await cardRepository.update(id, {... cardData, isBlocked: false, password: hashedPassword})
+}
+
+export async function getBalance(id: number) {
+  const cardData = await cardRepository.findById(id)
+  if(!cardData) throw notFoundError("card")
+
+  const payments = await paymentRepository.findByCardId(id)
+  const recharges = await rechargeRepository.findByCardId(id)
+
+  let balance: number = 0
+
+  for (let i = 0 ; i < payments.length; i++) {
+    balance = balance - payments[i].amount
+  }
+
+  for (let i = 0; i < recharges.length; i++) {
+    balance = balance + recharges[i].amount
+  }
+
+  return balance
 }
 
 //errors
